@@ -1,28 +1,32 @@
 "use strict";
 
+//Starting point of robot.
 let newX = 0;
 let newY = 0;
 let newF = "SOUTH WEST";
 
-//dimensions of the table top; default is 5 x 5.
-const xLimit = 5;
-const yLimit = 5;
+//Dimensions of the table top; default is 5 x 5.
+const xLimit = 4;
+const yLimit = 4;
 
+//Logs where the robot is currently at.
 const output = (command, x, y, f) =>
   console.log(`Robot ${command} at coordinate (${x}, ${y}) facing ${f}.`);
 
 //Creates input field on webpage and button to submit input
-document.body.append(document.createElement("textarea"));
-document.body.append(document.createElement("button"));
+const textarea = document.body.append(document.createElement("textarea"));
+const button = document.body.append(document.createElement("button"));
 
-//Manipulate input from user and calls respective functions
+//Manipulates input from user and calls respective functions
 document.querySelector("button").addEventListener("click", function () {
   const instructions = document.querySelector("textarea").value;
   const instructionsSplit = instructions.split("\n");
 
-  for (const [i, row] of instructionsSplit.entries()) {
-    const withinBoard = newX <= xLimit && newY <= yLimit;
+  //Validates that the robot is still within the board.
+  const withinBoard = newX <= xLimit && newY <= yLimit;
 
+  //Loops through each instruction.
+  for (const [i, row] of instructionsSplit.entries()) {
     if (withinBoard) {
       console.log(`Instruction ${i + 1}: ${row}`);
     } else {
@@ -46,28 +50,31 @@ document.querySelector("button").addEventListener("click", function () {
 //List of valid directions
 const validF = ["NORTH", "EAST", "SOUTH", "WEST"];
 
-//Functions to rotate robots
+//Rotates robot to the left.
 const turnLeft = function (x, y, f) {
   newF = validF[validF.indexOf(f) - 1] || "WEST";
   output("rotated to the left", x, y, newF);
 };
 
+//Rotates robot to the right.
 const turnRight = function (x, y, f) {
   newF = validF[validF.indexOf(f) + 1] || "WEST";
   output("rotated to the right", x, y, newF);
 };
 
-//Function to moves the robot one unit forward in the direction it is currently facing.
+//Move the robot one unit in the y-coordinate direction.
 const moveY = function (x, y, f, p) {
   newY = y + p;
   output("moved", x, newY, f);
 };
 
+//Move the robot one unit in the x-coordinate direction.
 const moveX = function (x, y, f, p) {
   newX = x + p;
   output("moved", x, newY, f);
 };
 
+//Calls move functions above based on the direction the robot is facing.
 const move = function (x, y, f) {
   if (f === "NORTH") moveY(x, y, f, 1);
   if (f === "EAST") moveX(x, y, f, 1);
@@ -75,5 +82,5 @@ const move = function (x, y, f) {
   if (f === "WEST") moveX(x, y, f, -1);
 };
 
-//reports the coordinates of robot
+//Reports the coordinates of robot.
 const report = (x, y, f) => output("is", x, newY, newF);
