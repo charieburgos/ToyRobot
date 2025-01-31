@@ -1,86 +1,88 @@
 "use strict";
+const directions = ["NORTH", "EAST", "SOUTH", "WEST"];
 
-//Starting point of robot.
-let newX = 0;
-let newY = 0;
-let newF = "SOUTH WEST";
-
-//Dimensions of the table top; default is 5 x 5.
-const xLimit = 4;
-const yLimit = 4;
-
-//Logs where the robot is currently at.
-const output = (command, x, y, f) =>
-  console.log(`Robot ${command} at coordinate (${x}, ${y}) facing ${f}.`);
-
-//Creates input field on webpage and button to submit input
-const textarea = document.body.append(document.createElement("textarea"));
-const button = document.body.append(document.createElement("button"));
-
-//Manipulates input from user and calls respective functions
-document.querySelector("button").addEventListener("click", function () {
-  const instructions = document.querySelector("textarea").value;
-  const instructionsSplit = instructions.split("\n");
-
-  //Validates that the robot is still within the board.
-  const withinBoard = newX <= xLimit && newY <= yLimit;
-
-  //Loops through each instruction.
-  for (const [i, row] of instructionsSplit.entries()) {
-    if (withinBoard) {
-      console.log(`Instruction ${i + 1}: ${row}`);
-    } else {
-      console.log("Robot has fallen off the board :(");
-    }
-
-    if (row.includes("PLACE")) {
-      const [command, coordinates] = row.split(" ");
-      const [x, y, f] = coordinates.split(",");
-      output("placed", x, y, f);
-      [newX, newY, newF] = [Number(x), Number(y), f];
-    }
-
-    if (row.includes("MOVE") && withinBoard) move(newX, newY, newF);
-    if (row.includes("LEFT") && withinBoard) turnLeft(newX, newY, newF);
-    if (row.includes("RIGHT") && withinBoard) turnRight(newX, newY, newF);
-    if (row.includes("REPORT") && withinBoard) report(newX, newY, newF);
+class Table {
+  constructor(xOrigin, yOrigin, xLimit, yLimit) {
+    this.xOrigin = xOrigin;
+    this.yOrigin = yOrigin;
+    this.xLimit = xLimit;
+    this.yLimit = yLimit;
   }
-});
+}
 
-//List of valid directions
-const validF = ["NORTH", "EAST", "SOUTH", "WEST"];
+class Commands {
+  move() {
+    this.moveDirections = {
+      NORTH: [0, 1],
+      EAST: [1, 0],
+      SOUTH: [0, -1],
+      WEST: [-1, 0],
+    };
+  }
+  rotate() {}
+  report() {}
+}
 
-//Rotates robot to the left.
-const turnLeft = function (x, y, f) {
-  newF = validF[validF.indexOf(f) - 1] || "WEST";
-  output("rotated to the left", x, y, newF);
+const output = function (...details) {
+  const [name, command, x, y, dir] = details;
+  console.log(`${name} ${command} to position (${x}, ${y}) facing ${dir}.`);
 };
 
-//Rotates robot to the right.
-const turnRight = function (x, y, f) {
-  newF = validF[validF.indexOf(f) + 1] || "WEST";
-  output("rotated to the right", x, y, newF);
-};
+let command;
+class Toy {
+  //Constructor method to create the toy object and place it on the board.
+  constructor(name, xPos, yPos, direction) {
+    this.name = name; //name of the object
+    this.xPos = xPos; //x-direction
+    this.yPos = yPos; //y-direction
+    this.direction = direction; //direction object is facing
 
-//Move the robot one unit in the y-coordinate direction.
-const moveY = function (x, y, f, p) {
-  newY = y + p;
-  output("moved", x, newY, f);
-};
+    this.moveDirections = {
+      NORTH: [0, 1],
+      EAST: [1, 0],
+      SOUTH: [0, -1],
+      WEST: [-1, 0],
+    };
+  }
 
-//Move the robot one unit in the x-coordinate direction.
-const moveX = function (x, y, f, p) {
-  newX = x + p;
-  output("moved", x, newY, f);
-};
+  place() {
+    command = "placed";
+    this.report();
+  }
 
-//Calls move functions above based on the direction the robot is facing.
-const move = function (x, y, f) {
-  if (f === "NORTH") moveY(x, y, f, 1);
-  if (f === "EAST") moveX(x, y, f, 1);
-  if (f === "SOUTH") moveY(x, y, f, -1);
-  if (f === "WEST") moveX(x, y, f, -1);
-};
+  move() {
+    command = "moved";
+    const [xDir, yDir] = this.moveDirections[this.direction] || [0, 0];
+    this.xPos += xDir;
+    this.yPos += yDir;
+    this.report();
+  }
 
-//Reports the coordinates of robot.
-const report = (x, y, f) => output("is", x, newY, newF);
+  rotate(side) {
+    this.side = side.toLowerCase();
+    command = `rotated ${this.side}`;
+    console.log(command);
+    //get current index of direction toy is facing.
+    const dirIndex = directions.indexOf(this.direction);
+
+    //new direction is the next direction and if it is the end of the list return the mod.
+    this.direction =
+      this.side === "left"
+        ? directions.at((dirIndex - 1) % directions.length)
+        : directions.at((dirIndex + 1) % directions.length);
+    this.report();
+  }
+
+  report() {
+    output(this.name, command, this.xPos, this.yPos, this.direction);
+  }
+}
+
+/*-----TEST--------*/
+const robot = new Toy("Robot", 1, 2, "EAST");
+robot.place();
+robot.move();
+robot.move();
+robot.rotate("left");
+robot.move();
+robot.report();
